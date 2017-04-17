@@ -980,6 +980,9 @@ local function initEnv(build, mode, override)
 				if gem.enabled and gem.data and not gem.data.support and not gem.data.unsupported then
 					local activeSkill = createActiveSkill(gem, supportList)
 					activeSkill.slotName = socketGroup.slot
+
+					activeSkill.externalAuraEffect = socketGroup.externalAuraEffect
+
 					t_insert(socketGroupSkillList, activeSkill)
 					t_insert(env.activeSkillList, activeSkill)
 				end
@@ -1225,7 +1228,15 @@ local function performCalcs(env)
 				srcList:ScaleAddList(activeSkill.buffModList, (1 + inc / 100) * more)
 				mergeBuff(srcList, buffs, activeSkill.activeGem.name)
 			end
-			if activeSkill.auraModList and not activeSkill.skillData.auraCannotAffectSelf then
+			if activeSkill.auraModList and tonumber(activeSkill.externalAuraEffect) ~= nil then
+				activeSkill.buffSkill = true
+				local srcList = common.New("ModList")
+				local inc = skillModList:Sum("INC", skillCfg, "AuraEffect", "BuffEffect") + activeSkill.externalAuraEffect
+				local more = skillModList:Sum("MORE", skillCfg, "AuraEffect", "BuffEffect")
+				srcList:ScaleAddList(activeSkill.auraModList, (1 + inc / 100) * more)
+				srcList:ScaleAddList(extraAuraModList, (1 + inc / 100) * more)
+				mergeBuff(srcList, buffs, activeSkill.activeGem.name)
+			elseif activeSkill.auraModList and not activeSkill.skillData.auraCannotAffectSelf then
 				activeSkill.buffSkill = true
 				local srcList = common.New("ModList")
 				local inc = modDB:Sum("INC", skillCfg, "AuraEffect", "BuffEffect") + skillModList:Sum("INC", skillCfg, "AuraEffect", "BuffEffect")
@@ -1235,6 +1246,7 @@ local function performCalcs(env)
 				mergeBuff(srcList, buffs, activeSkill.activeGem.name)
 				condList["HaveAuraActive"] = true
 			end
+
 		end
 		if env.mode_effective then
 			if activeSkill.debuffModList then

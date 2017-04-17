@@ -35,6 +35,11 @@ local SkillsTabClass = common.NewClass("SkillsTab", "UndoHandler", "ControlHost"
 		self:AddUndoState()
 		self.build.buildFlag = true
 	end)
+	self.controls.groupExternalAuraEffect = common.New("EditControl", {"TOPLEFT",self.anchorGroupDetail,"TOPLEFT"}, 400, 0, 380, 20, nil, "External Aura Effect", "%c", 50, function(effect)
+		self.displayGroup.externalAuraEffect = effect
+		self:ProcessSocketGroup(self.displayGroup)
+		self:AddUndoState()
+	end)
 	self.controls.groupSlotLabel = common.New("LabelControl", {"TOPLEFT",self.anchorGroupDetail,"TOPLEFT"}, 0, 30, 0, 16, "^7Socketed in:")
 	self.controls.groupSlot = common.New("DropDownControl", {"TOPLEFT",self.anchorGroupDetail,"TOPLEFT"}, 85, 28, 110, 20, { "None", "Weapon 1", "Weapon 2", "Helmet", "Body Armour", "Gloves", "Boots", "Amulet", "Ring 1", "Ring 2" }, function(sel, selVal)
 		if sel > 1 then
@@ -102,6 +107,7 @@ function SkillsTabClass:Load(xml, fileName)
 			local socketGroup = { }
 			socketGroup.enabled = node.attrib.active == "true" or node.attrib.enabled == "true"
 			socketGroup.label = node.attrib.label
+			socketGroup.externalAuraEffect = node.attrib.externalAuraEffect
 			socketGroup.slot = node.attrib.slot
 			socketGroup.source = node.attrib.source
 			socketGroup.mainActiveSkill = tonumber(node.attrib.mainActiveSkill) or 1
@@ -131,6 +137,7 @@ function SkillsTabClass:Save(xml)
 		local node = { elem = "Skill", attrib = {
 			enabled = tostring(socketGroup.enabled),
 			label = socketGroup.label,
+			externalAuraEffect = socketGroup.externalAuraEffect,
 			slot = socketGroup.slot,
 			source = socketGroup.source,
 			mainActiveSkill = tostring(socketGroup.mainActiveSkill),
@@ -447,6 +454,7 @@ function SkillsTabClass:SetDisplayGroup(socketGroup)
 
 		-- Update the main controls
 		self.controls.groupLabel:SetText(socketGroup.label)
+		self.controls.groupExternalAuraEffect:SetText(socketGroup.externalAuraEffect)
 		self.controls.groupSlot:SelByValue(socketGroup.slot or "None")
 		self.controls.groupEnabled.state = socketGroup.enabled
 
